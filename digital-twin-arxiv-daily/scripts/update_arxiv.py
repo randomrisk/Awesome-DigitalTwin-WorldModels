@@ -4,6 +4,7 @@ import json
 import socket
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlencode
 from urllib.error import URLError
 from urllib.request import urlopen
@@ -26,7 +27,7 @@ def load_config() -> dict:
     return config
 
 
-def require_config_key(config: dict, key: str):
+def require_config_key(config: dict, key: str) -> Any:
     """Return a required config value or raise a descriptive error."""
     if key not in config:
         raise ValueError(f"Invalid config.yaml: missing required key '{key}'")
@@ -88,13 +89,14 @@ def update_readme(readme_path: Path, date_str: str, results: dict[str, list[dict
 
 def main() -> None:
     """Run the daily update workflow from config load to output generation."""
+    max_results_error = "Invalid config.yaml: 'max_results' must be a positive integer"
     config = load_config()
     try:
         max_results = int(require_config_key(config, "max_results"))
     except (TypeError, ValueError) as error:
-        raise ValueError("Invalid config.yaml: 'max_results' must be a positive integer") from error
+        raise ValueError(max_results_error) from error
     if max_results <= 0:
-        raise ValueError("Invalid config.yaml: 'max_results' must be a positive integer")
+        raise ValueError(max_results_error)
 
     data_store_path = PROJECT_ROOT / str(require_config_key(config, "data_store_path"))
     readme_path = PROJECT_ROOT / str(require_config_key(config, "readme_path"))
