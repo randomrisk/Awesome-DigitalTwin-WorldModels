@@ -18,7 +18,16 @@ ARXIV_API_URL = "https://export.arxiv.org/api/query"
 
 def load_config() -> dict:
     with CONFIG_PATH.open("r", encoding="utf-8") as file:
-        return yaml.safe_load(file)
+        config = yaml.safe_load(file)
+    if not isinstance(config, dict):
+        raise ValueError("Invalid config.yaml: expected a mapping at the top level")
+    return config
+
+
+def get_required(config: dict, key: str):
+    if key not in config:
+        raise ValueError(f"Invalid config.yaml: missing required key '{key}'")
+    return config[key]
 
 
 def fetch_arxiv(query: str, max_results: int) -> list[dict]:
@@ -27,8 +36,11 @@ def fetch_arxiv(query: str, max_results: int) -> list[dict]:
     try:
         with urlopen(url, timeout=30) as response:
             feed = feedparser.parse(response.read())
-    except (URLError, TimeoutError) as error:
-        print(f"Warning: failed to fetch '{query}': {error}")
+    except TimeoutError as error:
+        print(f"Warning: timeout while fetching '{query}': {error}")
+        return []
+    except URLError as error:
+        print(f"Warning: network error while fetching '{query}': {error}")
         return []
 
     papers = []
@@ -71,10 +83,18 @@ def update_readme(readme_path: Path, date_str: str, results: dict[str, list[dict
 
 def main() -> None:
     config = load_config()
-    max_results = int(config["max_results"])
-    data_store_path = PROJECT_ROOT / config["data_store_path"]
-    readme_path = PROJECT_ROOT / config["readme_path"]
-    keywords = config["keywords"]
+    try:
+        max_results = int(get_required(config, "max_results"))
+    except (TypeError, ValueError) as error:
+        raise ValueError("Invalid config.yaml: 'max_results' must be a positive integer") from error
+    if max_results <= 0:
+        raise ValueError("Invalid config.yaml: 'max_results' must be a positive integer")
+
+    data_store_path = PROJECT_ROOT / str(get_required(config, "data_store_path"))
+    readme_path = PROJECT_ROOT / str(get_required(config, "readme_path"))
+    keywords = get_required(config, "keywords")
+    if not isinstance(keywords, dict):
+        raise ValueError("Invalid config.yaml: 'keywords' must be a mapping of topic names to query objects")
 
     data_store_path.mkdir(parents=True, exist_ok=True)
 
