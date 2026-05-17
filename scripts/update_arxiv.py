@@ -17,7 +17,6 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = PROJECT_ROOT / "config.yaml"
 ARXIV_API_URLS = [
     "https://export.arxiv.org/api/query",
-    "https://arxiv.org/api/query",
 ]
 ARXIV_USER_AGENT = "Awesome-DigitalTwin-WorldModels-arXiv-Updater/1.0"
 MAX_RESULTS_ERROR = "Invalid config.yaml: 'max_results' must be a positive integer"
@@ -63,7 +62,7 @@ def fetch_arxiv(query: str, max_results: int) -> list[dict] | None:
                 payload = response.read(MAX_FEED_BYTES + 1)
                 if len(payload) > MAX_FEED_BYTES:
                     print(f"Warning: response too large for '{query}', skipping")
-                    return []
+                    return None
                 break
         except (TimeoutError, socket.timeout, URLError) as error:
             errors.append(f"{base_url}: {error}")
@@ -151,7 +150,7 @@ def main() -> None:
     if successful_fetches == 0:
         raise RuntimeError(
             "All arXiv queries failed to fetch; aborting update to avoid publishing misleading empty results. "
-            "Check network/DNS connectivity, outbound HTTPS access to arxiv.org/export.arxiv.org, and workflow logs."
+            "Check network/DNS connectivity, outbound access to arXiv API endpoints, and workflow logs."
         )
 
     now = datetime.now(UTC)
