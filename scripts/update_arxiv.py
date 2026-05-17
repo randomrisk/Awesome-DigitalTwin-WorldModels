@@ -16,7 +16,7 @@ import yaml
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = PROJECT_ROOT / "config.yaml"
 ARXIV_API_URL = "https://export.arxiv.org/api/query"
-ARXIV_USER_AGENT = "Awesome-DigitalTwin-WorldModels-arXiv-Updater/1.0"
+ARXIV_USER_AGENT = "Awesome-Digital-Twin-WorldModels-arXiv-Updater/1.0"
 MAX_RESULTS_ERROR = "Invalid config.yaml: 'max_results' must be a positive integer"
 MAX_FEED_BYTES = 5_000_000
 
