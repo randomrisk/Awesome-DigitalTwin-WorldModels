@@ -16,6 +16,7 @@ import yaml
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = PROJECT_ROOT / "config.yaml"
 ARXIV_API_URL = "https://export.arxiv.org/api/query"
+MAX_RESULTS_ERROR = "Invalid config.yaml: 'max_results' must be a positive integer"
 
 
 def load_config() -> dict:
@@ -41,7 +42,7 @@ def fetch_arxiv(query: str, max_results: int) -> list[dict]:
     try:
         with urlopen(url, timeout=30) as response:
             feed = feedparser.parse(response.read())
-    except socket.timeout as error:
+    except (TimeoutError, socket.timeout) as error:
         print(f"Warning: timeout while fetching '{query}': {error}")
         return []
     except URLError as error:
@@ -89,14 +90,13 @@ def update_readme(readme_path: Path, date_str: str, results: dict[str, list[dict
 
 def main() -> None:
     """Run the daily update workflow from config load to output generation."""
-    max_results_error = "Invalid config.yaml: 'max_results' must be a positive integer"
     config = load_config()
     try:
         max_results = int(require_config_key(config, "max_results"))
     except (TypeError, ValueError) as error:
-        raise ValueError(max_results_error) from error
+        raise ValueError(MAX_RESULTS_ERROR) from error
     if max_results <= 0:
-        raise ValueError(max_results_error)
+        raise ValueError(MAX_RESULTS_ERROR)
 
     data_store_path = PROJECT_ROOT / str(require_config_key(config, "data_store_path"))
     readme_path = PROJECT_ROOT / str(require_config_key(config, "readme_path"))
