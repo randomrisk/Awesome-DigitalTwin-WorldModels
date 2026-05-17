@@ -18,6 +18,7 @@ ARXIV_API_URL = "https://export.arxiv.org/api/query"
 
 
 def load_config() -> dict:
+    """Load and validate the top-level YAML structure."""
     with CONFIG_PATH.open("r", encoding="utf-8") as file:
         config = yaml.safe_load(file)
     if not isinstance(config, dict):
@@ -25,13 +26,15 @@ def load_config() -> dict:
     return config
 
 
-def get_required(config: dict, key: str):
+def require_config_key(config: dict, key: str):
+    """Return a required config value or raise a descriptive error."""
     if key not in config:
         raise ValueError(f"Invalid config.yaml: missing required key '{key}'")
     return config[key]
 
 
 def fetch_arxiv(query: str, max_results: int) -> list[dict]:
+    """Fetch arXiv entries for a query and return normalized paper metadata."""
     params = urlencode({"search_query": query, "start": 0, "max_results": max_results})
     url = f"{ARXIV_API_URL}?{params}"
     try:
@@ -61,6 +64,7 @@ def fetch_arxiv(query: str, max_results: int) -> list[dict]:
 
 
 def update_readme(readme_path: Path, date_str: str, results: dict[str, list[dict]]) -> None:
+    """Write a generated README summary for the latest snapshot."""
     lines = [
         "# Digital Twin & World Model arXiv Daily",
         "",
@@ -83,17 +87,18 @@ def update_readme(readme_path: Path, date_str: str, results: dict[str, list[dict
 
 
 def main() -> None:
+    """Run the daily update workflow from config load to output generation."""
     config = load_config()
     try:
-        max_results = int(get_required(config, "max_results"))
+        max_results = int(require_config_key(config, "max_results"))
     except (TypeError, ValueError) as error:
         raise ValueError("Invalid config.yaml: 'max_results' must be a positive integer") from error
     if max_results <= 0:
         raise ValueError("Invalid config.yaml: 'max_results' must be a positive integer")
 
-    data_store_path = PROJECT_ROOT / str(get_required(config, "data_store_path"))
-    readme_path = PROJECT_ROOT / str(get_required(config, "readme_path"))
-    keywords = get_required(config, "keywords")
+    data_store_path = PROJECT_ROOT / str(require_config_key(config, "data_store_path"))
+    readme_path = PROJECT_ROOT / str(require_config_key(config, "readme_path"))
+    keywords = require_config_key(config, "keywords")
     if not isinstance(keywords, dict):
         raise ValueError("Invalid config.yaml: 'keywords' must be a mapping of topic names to query objects")
 
