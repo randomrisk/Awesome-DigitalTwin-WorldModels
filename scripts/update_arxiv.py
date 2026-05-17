@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
 from urllib.error import URLError
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 import feedparser
 import yaml
@@ -16,6 +16,7 @@ import yaml
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = PROJECT_ROOT / "config.yaml"
 ARXIV_API_URL = "https://export.arxiv.org/api/query"
+ARXIV_USER_AGENT = "Awesome-Digital-Twin-WorldModels-arXiv-Updater/1.0"
 MAX_RESULTS_ERROR = "Invalid config.yaml: 'max_results' must be a positive integer"
 MAX_FEED_BYTES = 5_000_000
 
@@ -46,23 +47,23 @@ def resolve_project_path(path_value: str, key_name: str) -> Path:
     return resolved
 
 
-def fetch_arxiv(query: str, max_results: int) -> list[dict]:
+def fetch_arxiv(query: str, max_results: int) -> list[dict] | None:
     """Fetch arXiv entries for a query and return normalized paper metadata."""
     params = urlencode({"search_query": query, "start": 0, "max_results": max_results})
     url = f"{ARXIV_API_URL}?{params}"
+    request = Request(url, headers={"User-Agent": ARXIV_USER_AGENT})
     try:
-        with urlopen(url, timeout=30) as response:
+        with urlopen(request, timeout=30) as response:
             payload = response.read(MAX_FEED_BYTES + 1)
-            if len(payload) > MAX_FEED_BYTES:
-                print(f"Warning: response too large for '{query}', skipping")
-                return []
-            feed = feedparser.parse(payload)
-    except (TimeoutError, socket.timeout) as error:
-        print(f"Warning: timeout while fetching '{query}': {error}")
-        return []
-    except URLError as error:
-        print(f"Warning: network error while fetching '{query}': {error}")
-        return []
+    except (TimeoutError, socket.timeout, URLError) as error:
+        print(f"Warning: arXiv fetch failed for '{query}' via {ARXIV_API_URL}: {error}")
+        return None
+
+    if len(payload) > MAX_FEED_BYTES:
+        print(f"Warning: response too large for '{query}', skipping")
+        return None
+
+    feed = feedparser.parse(payload)
 
     papers = []
     for entry in feed.entries:
@@ -123,13 +124,25 @@ def main() -> None:
     data_store_path.mkdir(parents=True, exist_ok=True)
 
     collected: dict[str, list[dict]] = {}
+    successful_fetches = 0
     for topic, item in keywords.items():
         if not isinstance(item, dict):
             raise ValueError(f"Invalid config.yaml: keyword '{topic}' must map to an object with a 'query' field")
         query = item.get("query")
         if not query:
             raise ValueError(f"Invalid config.yaml: keyword '{topic}' is missing required 'query'")
-        collected[topic] = fetch_arxiv(query=query, max_results=max_results)
+        papers = fetch_arxiv(query=query, max_results=max_results)
+        if papers is None:
+            collected[topic] = []
+            continue
+        successful_fetches += 1
+        collected[topic] = papers
+
+    if successful_fetches == 0:
+        raise RuntimeError(
+            "All arXiv queries failed to fetch; aborting update to avoid publishing misleading empty results. "
+            "Check network/DNS connectivity, outbound access to arXiv API endpoints, and workflow logs."
+        )
 
     now = datetime.now(UTC)
     date_str = now.strftime("%Y-%m-%d %H:%M:%S")
