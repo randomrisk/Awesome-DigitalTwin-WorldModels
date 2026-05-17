@@ -100,7 +100,11 @@ def main() -> None:
 
     collected: dict[str, list[dict]] = {}
     for topic, item in keywords.items():
-        query = item["query"]
+        if not isinstance(item, dict):
+            raise ValueError(f"Invalid config.yaml: keyword '{topic}' must map to an object with a 'query' field")
+        query = item.get("query")
+        if not query:
+            raise ValueError(f"Invalid config.yaml: keyword '{topic}' is missing required 'query'")
         collected[topic] = fetch_arxiv(query=query, max_results=max_results)
 
     now = datetime.now(UTC)
