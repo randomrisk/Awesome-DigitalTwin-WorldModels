@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import socket
 from datetime import UTC, datetime
 from pathlib import Path
 from urllib.parse import urlencode
@@ -36,7 +37,7 @@ def fetch_arxiv(query: str, max_results: int) -> list[dict]:
     try:
         with urlopen(url, timeout=30) as response:
             feed = feedparser.parse(response.read())
-    except TimeoutError as error:
+    except socket.timeout as error:
         print(f"Warning: timeout while fetching '{query}': {error}")
         return []
     except URLError as error:
