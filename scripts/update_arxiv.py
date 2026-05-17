@@ -69,7 +69,7 @@ def fetch_arxiv(query: str, max_results: int) -> list[dict] | None:
             errors.append(f"{base_url}: {error}")
 
     if payload is None:
-        details = " | ".join(errors) if errors else "unknown error"
+        details = " | ".join(errors)
         print(f"Warning: all arXiv endpoints failed for '{query}': {details}")
         return None
 
@@ -151,7 +151,7 @@ def main() -> None:
     if successful_fetches == 0:
         raise RuntimeError(
             "All arXiv queries failed to fetch; aborting update to avoid publishing misleading empty results. "
-            "Check network/DNS connectivity and the endpoint errors logged above."
+            "Check network/DNS connectivity, outbound HTTPS access to arxiv.org/export.arxiv.org, and workflow logs."
         )
 
     now = datetime.now(UTC)
