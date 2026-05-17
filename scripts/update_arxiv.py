@@ -15,9 +15,7 @@ import yaml
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = PROJECT_ROOT / "config.yaml"
-ARXIV_API_URLS = [
-    "https://export.arxiv.org/api/query",
-]
+ARXIV_API_URL = "https://export.arxiv.org/api/query"
 ARXIV_USER_AGENT = "Awesome-DigitalTwin-WorldModels-arXiv-Updater/1.0"
 MAX_RESULTS_ERROR = "Invalid config.yaml: 'max_results' must be a positive integer"
 MAX_FEED_BYTES = 5_000_000
@@ -52,24 +50,17 @@ def resolve_project_path(path_value: str, key_name: str) -> Path:
 def fetch_arxiv(query: str, max_results: int) -> list[dict] | None:
     """Fetch arXiv entries for a query and return normalized paper metadata."""
     params = urlencode({"search_query": query, "start": 0, "max_results": max_results})
-    payload: bytes | None = None
-    errors: list[str] = []
-    for base_url in ARXIV_API_URLS:
-        url = f"{base_url}?{params}"
-        request = Request(url, headers={"User-Agent": ARXIV_USER_AGENT})
-        try:
-            with urlopen(request, timeout=30) as response:
-                payload = response.read(MAX_FEED_BYTES + 1)
-                if len(payload) > MAX_FEED_BYTES:
-                    print(f"Warning: response too large for '{query}', skipping")
-                    return None
-                break
-        except (TimeoutError, socket.timeout, URLError) as error:
-            errors.append(f"{base_url}: {error}")
+    url = f"{ARXIV_API_URL}?{params}"
+    request = Request(url, headers={"User-Agent": ARXIV_USER_AGENT})
+    try:
+        with urlopen(request, timeout=30) as response:
+            payload = response.read(MAX_FEED_BYTES + 1)
+    except (TimeoutError, socket.timeout, URLError) as error:
+        print(f"Warning: arXiv fetch failed for '{query}' via {ARXIV_API_URL}: {error}")
+        return None
 
-    if payload is None:
-        details = " | ".join(errors)
-        print(f"Warning: all arXiv endpoints failed for '{query}': {details}")
+    if len(payload) > MAX_FEED_BYTES:
+        print(f"Warning: response too large for '{query}', skipping")
         return None
 
     feed = feedparser.parse(payload)
