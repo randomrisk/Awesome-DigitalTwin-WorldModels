@@ -23,16 +23,16 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r digital-twin-arxiv-daily/requirements.txt
+          pip install -r requirements.txt
 
       - name: Run updater
-        run: python digital-twin-arxiv-daily/scripts/update_arxiv.py
+        run: python scripts/update_arxiv.py
 
       - name: Commit and push data updates
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add digital-twin-arxiv-daily/data digital-twin-arxiv-daily/README.md
+          git add data README.md
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
