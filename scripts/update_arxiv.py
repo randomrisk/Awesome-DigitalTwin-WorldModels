@@ -18,9 +18,8 @@ CONFIG_PATH = PROJECT_ROOT / "config.yaml"
 ARXIV_API_URLS = [
     "https://export.arxiv.org/api/query",
     "https://arxiv.org/api/query",
-    "http://export.arxiv.org/api/query",
 ]
-ARXIV_USER_AGENT = "Awesome-DigitalTwin-WorldModels/1.0 (https://github.com/randomrisk/Awesome-DigitalTwin-WorldModels)"
+ARXIV_USER_AGENT = "Awesome-DigitalTwin-WorldModels-arXiv-Updater/1.0"
 MAX_RESULTS_ERROR = "Invalid config.yaml: 'max_results' must be a positive integer"
 MAX_FEED_BYTES = 5_000_000
 
@@ -150,7 +149,10 @@ def main() -> None:
         collected[topic] = papers
 
     if successful_fetches == 0:
-        raise RuntimeError("All arXiv queries failed to fetch; aborting update to avoid publishing misleading empty results")
+        raise RuntimeError(
+            "All arXiv queries failed to fetch; aborting update to avoid publishing misleading empty results. "
+            "Check network/DNS connectivity and the endpoint errors logged above."
+        )
 
     now = datetime.now(UTC)
     date_str = now.strftime("%Y-%m-%d %H:%M:%S")
