@@ -20,6 +20,7 @@ ARXIV_API_URLS = [
     "https://arxiv.org/api/query",
     "http://export.arxiv.org/api/query",
 ]
+ARXIV_USER_AGENT = "Awesome-DigitalTwin-WorldModels/1.0 (https://github.com/randomrisk/Awesome-DigitalTwin-WorldModels)"
 MAX_RESULTS_ERROR = "Invalid config.yaml: 'max_results' must be a positive integer"
 MAX_FEED_BYTES = 5_000_000
 
@@ -54,10 +55,10 @@ def fetch_arxiv(query: str, max_results: int) -> list[dict] | None:
     """Fetch arXiv entries for a query and return normalized paper metadata."""
     params = urlencode({"search_query": query, "start": 0, "max_results": max_results})
     payload: bytes | None = None
-    last_error: Exception | None = None
+    errors: list[str] = []
     for base_url in ARXIV_API_URLS:
         url = f"{base_url}?{params}"
-        request = Request(url, headers={"User-Agent": "Awesome-DigitalTwin-WorldModels/1.0 (https://github.com/randomrisk/Awesome-DigitalTwin-WorldModels)"})
+        request = Request(url, headers={"User-Agent": ARXIV_USER_AGENT})
         try:
             with urlopen(request, timeout=30) as response:
                 payload = response.read(MAX_FEED_BYTES + 1)
@@ -66,10 +67,11 @@ def fetch_arxiv(query: str, max_results: int) -> list[dict] | None:
                     return []
                 break
         except (TimeoutError, socket.timeout, URLError) as error:
-            last_error = error
+            errors.append(f"{base_url}: {error}")
 
     if payload is None:
-        print(f"Warning: network error while fetching '{query}': {last_error}")
+        details = " | ".join(errors) if errors else "unknown error"
+        print(f"Warning: all arXiv endpoints failed for '{query}': {details}")
         return None
 
     feed = feedparser.parse(payload)
