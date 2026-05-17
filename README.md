@@ -1,6 +1,6 @@
 # Digital Twin & World Model arXiv Daily
 
-Last updated (UTC): 2026-05-17 07:21:17
+Last updated (UTC): 2026-05-17 07:24:56
 
 This repository stores daily arXiv query results for digital twin, world model, and medical simulation topics.
 
