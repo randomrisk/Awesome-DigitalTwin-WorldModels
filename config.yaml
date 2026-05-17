@@ -1,97 +1,14 @@
-max_results: 100
-data_store_path: data
-readme_path: README.md
-
 keywords:
-  Digital Twin Core:
-    query: 'all:"digital twin" OR all:"digital twins"'
-
-  Medical Digital Twin:
-    query: 'all:"medical digital twin" OR all:"healthcare digital twin" OR all:"human digital twin" OR all:"patient digital twin"'
-
-  Digital Twin Healthcare:
-    query: '(all:"digital twin" OR all:"digital twins") AND (all:healthcare OR all:medical OR all:clinical OR all:patient)'
-
-  World Model:
-    query: 'all:"world model" OR all:"world models"'
-
-  Medical World Model:
-    query: 'all:"medical world model" OR all:"medical world models" OR all:"clinical world model" OR all:"healthcare world model"'
-
-  Patient Centric World Model:
-    query: 'all:"patient-centric" AND all:"world model"'
-
-  Patient Simulation:
-    query: 'all:"patient simulation" OR all:"virtual patient" OR all:"synthetic patient"'
-
-  Clinical Trajectory Modeling:
-    query: 'all:"clinical trajectory" OR all:"patient trajectory" OR all:"disease trajectory"'
-
-  Disease Progression Modeling:
-    query: 'all:"disease progression" AND (all:modeling OR all:prediction OR all:simulation)'
-
-  Treatment Response Prediction:
-    query: 'all:"treatment response" AND (all:prediction OR all:simulation OR all:modeling)'
-
-  Clinical Decision Simulation:
-    query: 'all:"clinical decision" AND (all:simulation OR all:planning OR all:"world model")'
-
-  Counterfactual Healthcare:
-    query: 'all:counterfactual AND (all:healthcare OR all:clinical OR all:medical OR all:patient)'
-
-  Causal Healthcare AI:
-    query: 'all:causal AND (all:healthcare OR all:clinical OR all:medical OR all:EHR)'
-
-  Reinforcement Learning Healthcare:
-    query: 'all:"reinforcement learning" AND (all:healthcare OR all:clinical OR all:medical OR all:treatment)'
-
-  Offline RL Healthcare:
-    query: 'all:"offline reinforcement learning" AND (all:healthcare OR all:clinical OR all:medical OR all:treatment)'
-
-  In Silico Clinical Trials:
-    query: 'all:"in silico trial" OR all:"in-silico trial" OR all:"virtual clinical trial"'
-
-  Synthetic Health Data:
-    query: 'all:"synthetic health data" OR all:"synthetic EHR" OR all:"synthetic patient data"'
-
-  EHR Foundation Model:
-    query: 'all:EHR AND (all:"foundation model" OR all:"large language model" OR all:transformer)'
-
-  Medical Time Series Foundation Model:
-    query: 'all:"medical time series" AND (all:"foundation model" OR all:forecasting OR all:prediction)'
-
-  Multimodal Medical AI:
-    query: 'all:"multimodal" AND (all:medical OR all:clinical OR all:healthcare) AND (all:"foundation model" OR all:"large language model")'
-
-  ICU Digital Twin:
-    query: 'all:ICU AND (all:"digital twin" OR all:"patient trajectory" OR all:"risk estimation")'
-
-  Tumor Simulation:
-    query: 'all:tumor AND (all:simulation OR all:"world model" OR all:"disease progression")'
-
-  Cardiovascular Digital Twin:
-    query: '(all:cardiac OR all:cardiovascular OR all:heart) AND (all:"digital twin" OR all:simulation)'
-
-  Brain Digital Twin:
-    query: '(all:brain OR all:neural OR all:neurological) AND (all:"digital twin" OR all:simulation)'
-
-  Organ Digital Twin:
-    query: '(all:organ OR all:physiological) AND (all:"digital twin" OR all:simulation)'
-
-  Agent Based Healthcare Simulation:
-    query: 'all:"agent-based" AND (all:healthcare OR all:hospital OR all:clinical OR all:patient)'
-
-  Hospital Digital Twin:
-    query: 'all:hospital AND (all:"digital twin" OR all:simulation OR all:"patient flow")'
-
-  Cyber Physical Medical Systems:
-    query: 'all:"cyber physical" AND (all:healthcare OR all:medical OR all:clinical)'
-
-  Wearable Digital Twin:
-    query: '(all:wearable OR all:sensor OR all:IoT) AND (all:"digital twin" OR all:"human digital twin")'
-
-  Physiological Modeling:
-    query: 'all:"physiological model" OR all:"physiological modeling" OR all:"mechanistic model"'
-
-  Hybrid AI Mechanistic Model:
-    query: '(all:"hybrid model" OR all:"physics-informed" OR all:"mechanistic") AND (all:medical OR all:clinical OR all:healthcare)'
+  - "digital twin"
+  - "medical digital twin"
+  - "healthcare digital twin"
+  - "patient digital twin"
+  - "world model"
+  - "medical world model"
+  - "clinical world model"
+  - "patient simulation"
+  - "disease progression model"
+  - "in silico clinical trial"
+max_results: 10
+data_store_path: data_store
+readme_path: README.md
