@@ -17,6 +17,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = PROJECT_ROOT / "config.yaml"
 ARXIV_API_URL = "https://export.arxiv.org/api/query"
 MAX_RESULTS_ERROR = "Invalid config.yaml: 'max_results' must be a positive integer"
+MAX_FEED_BYTES = 5_000_000
 
 
 def load_config() -> dict:
@@ -35,13 +36,27 @@ def require_config_key(config: dict, key: str) -> Any:
     return config[key]
 
 
+def resolve_project_path(path_value: str, key_name: str) -> Path:
+    """Resolve a configured path and ensure it stays inside PROJECT_ROOT."""
+    resolved = (PROJECT_ROOT / path_value).resolve()
+    try:
+        resolved.relative_to(PROJECT_ROOT.resolve())
+    except ValueError as error:
+        raise ValueError(f"Invalid config.yaml: '{key_name}' must stay within the project directory") from error
+    return resolved
+
+
 def fetch_arxiv(query: str, max_results: int) -> list[dict]:
     """Fetch arXiv entries for a query and return normalized paper metadata."""
     params = urlencode({"search_query": query, "start": 0, "max_results": max_results})
     url = f"{ARXIV_API_URL}?{params}"
     try:
         with urlopen(url, timeout=30) as response:
-            feed = feedparser.parse(response.read())
+            payload = response.read(MAX_FEED_BYTES + 1)
+            if len(payload) > MAX_FEED_BYTES:
+                print(f"Warning: response too large for '{query}', skipping")
+                return []
+            feed = feedparser.parse(payload)
     except (TimeoutError, socket.timeout) as error:
         print(f"Warning: timeout while fetching '{query}': {error}")
         return []
@@ -91,15 +106,16 @@ def update_readme(readme_path: Path, date_str: str, results: dict[str, list[dict
 def main() -> None:
     """Run the daily update workflow from config load to output generation."""
     config = load_config()
+    max_results_raw = require_config_key(config, "max_results")
     try:
-        max_results = int(require_config_key(config, "max_results"))
+        max_results = int(max_results_raw)
     except (TypeError, ValueError) as error:
         raise ValueError(MAX_RESULTS_ERROR) from error
     if max_results <= 0:
         raise ValueError(MAX_RESULTS_ERROR)
 
-    data_store_path = PROJECT_ROOT / str(require_config_key(config, "data_store_path"))
-    readme_path = PROJECT_ROOT / str(require_config_key(config, "readme_path"))
+    data_store_path = resolve_project_path(str(require_config_key(config, "data_store_path")), "data_store_path")
+    readme_path = resolve_project_path(str(require_config_key(config, "readme_path")), "readme_path")
     keywords = require_config_key(config, "keywords")
     if not isinstance(keywords, dict):
         raise ValueError("Invalid config.yaml: 'keywords' must be a mapping of topic names to query objects")
