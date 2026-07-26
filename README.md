@@ -1,6 +1,6 @@
 # Digital Twin & Medical World Model arXiv Daily
 
-Updated on 2026-07-25
+Updated on 2026-07-26
 
 ## digital twin
 
